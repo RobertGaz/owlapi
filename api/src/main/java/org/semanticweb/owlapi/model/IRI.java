@@ -42,7 +42,7 @@ import com.google.common.cache.LoadingCache;
  *         Management Group
  * @since 3.0.0
  */
-public class IRI implements OWLAnnotationSubject, OWLAnnotationValue, SWRLPredicate, CharSequence, OWLPrimitive,
+public class IRI extends HasPeriodImpl implements OWLAnnotationSubject, OWLAnnotationValue, SWRLPredicate, CharSequence, OWLPrimitive,
     HasShortForm {
 
     /**
@@ -582,4 +582,5 @@ public class IRI implements OWLAnnotationSubject, OWLAnnotationValue, SWRLPredic
         IRI other = (IRI) obj;
         return remainder.equals(other.remainder) && other.namespace.equals(namespace);
     }
+
 }

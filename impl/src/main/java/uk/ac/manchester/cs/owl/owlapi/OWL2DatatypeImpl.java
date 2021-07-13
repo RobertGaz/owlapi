@@ -33,7 +33,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
  *         Research Group
  * @since 3.2.0
  */
-public class OWL2DatatypeImpl implements OWLDatatype {
+public class OWL2DatatypeImpl extends HasPeriodImpl implements OWLDatatype {
 
     private static final long serialVersionUID = 40000L;
 

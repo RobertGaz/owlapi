@@ -30,7 +30,7 @@ import com.google.common.base.Optional;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health
  *         Informatics Group, Date: 26-Oct-2006
  */
-public class OWLLiteralImplString implements OWLLiteral {
+public class OWLLiteralImplString extends HasPeriodImpl implements OWLLiteral {
 
     private static final long serialVersionUID = 30406L;
     @Nonnull

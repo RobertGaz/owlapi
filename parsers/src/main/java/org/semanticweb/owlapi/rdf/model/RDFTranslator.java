@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.TimePeriod;
 import org.semanticweb.owlapi.util.IndividualAppearance;
 
 /**
@@ -51,6 +52,12 @@ public class RDFTranslator extends AbstractTranslator<RDFNode, RDFResource, RDFR
      */
     public RDFGraph getGraph() {
         return graph;
+    }
+
+
+    protected void addTriple(@Nonnull RDFResource subject, @Nonnull RDFResourceIRI pred, @Nonnull RDFNode object, TimePeriod period) {
+        graph.addTriple(new RDFTriple(checkNotNull(subject, "subject cannot be null"), checkNotNull(pred,
+                "pred cannot be null"), checkNotNull(object, "object cannot be null"), period));
     }
 
     @Override

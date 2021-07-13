@@ -14,6 +14,7 @@ package org.semanticweb.owlapi.rdf.rdfxml.parser;
 
 import javax.annotation.Nonnull;
 
+import org.semanticweb.owlapi.model.TimePeriod;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -59,4 +60,6 @@ public interface State {
      *         SAXException
      */
     void characters(char[] data, int start, int length) throws SAXException;
+
+    void setPeriod(TimePeriod period);
 }

@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.NodeID;
+import org.semanticweb.owlapi.model.TimePeriod;
 import org.semanticweb.owlapi.util.SAXParsers;
 import org.xml.sax.*;
 import org.xml.sax.ext.DeclHandler;
@@ -360,15 +361,17 @@ public class RDFParser extends DefaultHandler implements IRIProvider {
      *        the reified statement
      */
     public void statementWithResourceValue(@Nonnull String subject, @Nonnull String predicate, @Nonnull String object,
-        @Nullable String reificationID) {
+        @Nullable String reificationID, TimePeriod period) {
+
         String remappedSubject = consumer.remapOnlyIfRemapped(subject);
-        consumer.statementWithResourceValue(remappedSubject, predicate, object);
+        consumer.statementWithResourceValue(remappedSubject, predicate, object, period);
         if (reificationID != null) {
-            consumer.statementWithResourceValue(reificationID, RDF_TYPE, RDF_STATEMENT);
-            consumer.statementWithResourceValue(reificationID, RDF_SUBJECT, remappedSubject);
-            consumer.statementWithResourceValue(reificationID, RDF_PREDICATE, predicate);
-            consumer.statementWithResourceValue(reificationID, RDF_OBJECT, object);
+            consumer.statementWithResourceValue(reificationID, RDF_TYPE, RDF_STATEMENT, period);
+            consumer.statementWithResourceValue(reificationID, RDF_SUBJECT, remappedSubject, period);
+            consumer.statementWithResourceValue(reificationID, RDF_PREDICATE, predicate, period);
+            consumer.statementWithResourceValue(reificationID, RDF_OBJECT, object, period);
         }
+
     }
 
     /**
@@ -387,14 +390,15 @@ public class RDFParser extends DefaultHandler implements IRIProvider {
      *        the reified statement
      */
     public void statementWithLiteralValue(@Nonnull String subject, @Nonnull String predicate, @Nonnull String object,
-        @Nullable String dataType, @Nullable String reificationID) {
-        consumer.statementWithLiteralValue(subject, predicate, object, language, dataType);
+        @Nullable String dataType, @Nullable String reificationID, TimePeriod period) {
+        consumer.statementWithLiteralValue(subject, predicate, object, language, dataType, period);
         if (reificationID != null) {
-            consumer.statementWithResourceValue(reificationID, RDF_TYPE, RDF_STATEMENT);
-            consumer.statementWithResourceValue(reificationID, RDF_SUBJECT, subject);
-            consumer.statementWithResourceValue(reificationID, RDF_PREDICATE, predicate);
-            consumer.statementWithLiteralValue(reificationID, RDF_OBJECT, object, language, dataType);
+            consumer.statementWithResourceValue(reificationID, RDF_TYPE, RDF_STATEMENT, period);
+            consumer.statementWithResourceValue(reificationID, RDF_SUBJECT, subject, period);
+            consumer.statementWithResourceValue(reificationID, RDF_PREDICATE, predicate, period);
+            consumer.statementWithLiteralValue(reificationID, RDF_OBJECT, object, language, dataType, period);
         }
+
     }
 
     /**

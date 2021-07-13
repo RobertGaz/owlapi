@@ -177,4 +177,29 @@ public abstract class OWLAxiomImplWithoutEntityAndAnonCaching extends OWLObjectI
         addAnonymousIndividualsFromAnnotationsToSet(annotations, anons);
         return anons;
     }
+
+    private Set<TimePeriod> periods;
+
+    @Override
+    public void addPeriod(TimePeriod period) {
+        if (periods == null) {
+            periods = new HashSet<>();
+        }
+        periods.add(period);
+    }
+
+    @Override
+    public boolean hasPeriods() {
+        return periods != null && !periods.isEmpty();
+    }
+
+    @Override
+    public Set<TimePeriod> getPeriods() {
+        return periods;
+    }
+
+    @Override
+    public void setPeriods(Set<TimePeriod> periods) {
+        this.periods = periods;
+    }
 }

@@ -38,4 +38,5 @@ public interface HasAddAxiom {
      */
     @Nonnull
     ChangeApplied addAxiom(@Nonnull OWLOntology ont, @Nonnull OWLAxiom axiom);
+
 }

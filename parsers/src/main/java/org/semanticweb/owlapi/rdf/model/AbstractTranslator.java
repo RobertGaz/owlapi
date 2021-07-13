@@ -801,7 +801,13 @@ public abstract class AbstractTranslator<N extends Serializable, R extends N, P 
     private void addSingleTripleAxiom(@Nonnull OWLAxiom ax, @Nonnull R subject, @Nonnull P predicate,
         @Nonnull N object) {
         // Base triple
-        addTriple(subject, predicate, object);
+        if (ax.hasPeriods()) {
+            for (TimePeriod timePeriod : ax.getPeriods()) {
+                addTriple(subject, predicate, object, timePeriod);
+            }
+        } else {
+            addTriple(subject, predicate, object);
+        }
         if (ax.getAnnotations().isEmpty()) {
             return;
         }
@@ -928,6 +934,7 @@ public abstract class AbstractTranslator<N extends Serializable, R extends N, P 
     protected abstract L getLiteralNode(@Nonnull OWLLiteral literal);
 
     protected abstract void addTriple(@Nonnull R subject, @Nonnull P pred, @Nonnull N object);
+    protected abstract void addTriple(@Nonnull R subject, @Nonnull P pred, @Nonnull N object, TimePeriod period);
 
     @Nonnull
     @SuppressWarnings("unchecked")

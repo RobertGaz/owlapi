@@ -30,6 +30,11 @@ public interface RDFConstants {
     /**ATTR_PARSE_TYPE*/        @Nonnull  String ATTR_PARSE_TYPE          = "parseType";
     /**ATTR_DATATYPE*/          @Nonnull  String ATTR_DATATYPE            = "datatype";
     /**ATTR_NODE_ID*/           @Nonnull  String ATTR_NODE_ID             = "nodeID";
+
+    /**TIME_PERIOD*/            @Nonnull  String TIME_PERIOD              = "http://www.time-periods-free.com/rob#";
+    /**ATTR_START_TIMESTAMP*/   @Nonnull  String ATTR_START_TIMESTAMP     = "start";
+    /**ATTR_END_TIMESTAMP*/     @Nonnull  String ATTR_END_TIMESTAMP       = "end";
+
     /**PARSE_TYPE_LITERAL*/     @Nonnull  String PARSE_TYPE_LITERAL       = "Literal";
     /**PARSE_TYPE_RESOURCE*/    @Nonnull  String PARSE_TYPE_RESOURCE      = "Resource";
     /**PARSE_TYPE_COLLECTION*/  @Nonnull  String PARSE_TYPE_COLLECTION    = "Collection";

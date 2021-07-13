@@ -23,10 +23,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.NNF;
 import org.semanticweb.owlapi.util.OWLObjectTypeIndexProvider;
 
@@ -163,5 +160,30 @@ public abstract class OWLAxiomImplWithEntityAndAnonCaching extends OWLObjectImpl
         NNF con = new NNF(new OWLDataFactoryImpl());
         OWLAxiom nnf = accept(con);
         return verifyNotNull(nnf);
+    }
+
+    private Set<TimePeriod> periods;
+
+    @Override
+    public void addPeriod(TimePeriod period) {
+        if (periods == null) {
+            periods = new HashSet<>();
+        }
+        periods.add(period);
+    }
+
+    @Override
+    public boolean hasPeriods() {
+        return periods != null && !periods.isEmpty();
+    }
+
+    @Override
+    public Set<TimePeriod> getPeriods() {
+        return periods;
+    }
+
+    @Override
+    public void setPeriods(Set<TimePeriod> periods) {
+        this.periods = periods;
     }
 }

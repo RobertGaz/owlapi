@@ -119,7 +119,7 @@ public class RioOWLRDFConsumerAdapter extends OWLRDFConsumer implements RDFHandl
         }
         if (st.getObject() instanceof Resource) {
             logger.trace("statement with resource value");
-            statementWithResourceValue(subjectString, st.getPredicate().stringValue(), objectString);
+            statementWithResourceValue(subjectString, st.getPredicate().stringValue(), objectString, null);
         } else {
             final Literal literalObject = (Literal) st.getObject();
             String literalDatatype = null;
@@ -131,7 +131,7 @@ public class RioOWLRDFConsumerAdapter extends OWLRDFConsumer implements RDFHandl
             }
             logger.trace("statement with literal value");
             statementWithLiteralValue(subjectString, st.getPredicate().stringValue(), objectString, literalLanguage,
-                literalDatatype);
+                literalDatatype, null);
         }
     }
 

@@ -30,7 +30,7 @@ import uk.ac.manchester.cs.owl.owlapi.HasTrimToSize;
 /**
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 03/04/15
  */
-public class ConcurrentOWLOntologyImpl implements OWLMutableOntology,HasTrimToSize {
+public class ConcurrentOWLOntologyImpl extends HasPeriodImpl implements OWLMutableOntology,HasTrimToSize {
 
     private final OWLOntology delegate;
     private final ReadWriteLock readWriteLock;
@@ -49,6 +49,7 @@ public class ConcurrentOWLOntologyImpl implements OWLMutableOntology,HasTrimToSi
         this.readWriteLock = verifyNotNull(readWriteLock);
         this.readLock = verifyNotNull(readWriteLock).readLock();
         this.writeLock = verifyNotNull(readWriteLock).writeLock();
+
     }
 
     @Override

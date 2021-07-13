@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.TimePeriod;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import gnu.trove.map.hash.THashMap;
@@ -42,6 +43,15 @@ public class RDFTriple implements Serializable, Comparable<RDFTriple> {
     @Nonnull
     private final RDFNode object;
 
+    private TimePeriod timePeriod;
+
+    public RDFTriple(@Nonnull RDFResource subject, @Nonnull RDFResourceIRI predicate, @Nonnull RDFNode object, TimePeriod timePeriod) {
+        this.subject = checkNotNull(subject, "subject cannot be null");
+        this.predicate = checkNotNull(predicate, "predicate cannot be null");
+        this.object = checkNotNull(object, "object cannot be null");
+        this.timePeriod = timePeriod;
+    }
+
     /**
      * @param subject
      *        the subject
@@ -50,11 +60,11 @@ public class RDFTriple implements Serializable, Comparable<RDFTriple> {
      * @param object
      *        the object
      */
-    public RDFTriple(@Nonnull RDFResource subject,
-        @Nonnull RDFResourceIRI predicate, @Nonnull RDFNode object) {
+    public RDFTriple(@Nonnull RDFResource subject, @Nonnull RDFResourceIRI predicate, @Nonnull RDFNode object) {
         this.subject = checkNotNull(subject, "subject cannot be null");
         this.predicate = checkNotNull(predicate, "predicate cannot be null");
         this.object = checkNotNull(object, "object cannot be null");
+
     }
 
     /**
@@ -208,5 +218,9 @@ public class RDFTriple implements Serializable, Comparable<RDFTriple> {
                 return predicateIRI.compareTo(otherPredicateIRI);
             }
         }
+    }
+
+    public TimePeriod getTimePeriod() {
+        return timePeriod;
     }
 }

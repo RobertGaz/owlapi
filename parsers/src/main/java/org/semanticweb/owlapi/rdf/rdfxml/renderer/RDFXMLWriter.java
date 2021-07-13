@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import org.semanticweb.owlapi.io.RDFResourceBlankNode;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.TimePeriod;
 import org.semanticweb.owlapi.vocab.Namespaces;
 
 /**
@@ -50,6 +51,13 @@ public class RDFXMLWriter {
     @Nonnull
     private static final IRI PARSETYPE_IRI = IRI.create(
         Namespaces.RDF.getPrefixIRI(), "parseType");
+
+    private static final IRI TIME_START = IRI.create(
+            Namespaces.TIME.getPrefixIRI(), "start");
+
+    private static final IRI TIME_END = IRI.create(
+            Namespaces.TIME.getPrefixIRI(), "end");
+
     private final XMLWriter writer;
 
     protected RDFXMLWriter(@Nonnull XMLWriter writer) {
@@ -124,6 +132,15 @@ public class RDFXMLWriter {
      */
     public void writeAboutAttribute(@Nonnull IRI value) throws IOException {
         writeAttribute(RDF_ABOUT, value);
+    }
+
+    public void writePeriodAttributes(TimePeriod period) throws IOException {
+        if (period.getStart() != null) {
+            writer.writeAttribute(TIME_START, Long.toString(period.getStart()));
+        }
+        if (period.getEnd() != null) {
+            writer.writeAttribute(TIME_END, Long.toString(period.getEnd()));
+        }
     }
 
     /**

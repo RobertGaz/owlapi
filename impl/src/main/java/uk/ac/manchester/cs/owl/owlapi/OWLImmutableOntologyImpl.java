@@ -1423,4 +1423,5 @@ public class OWLImmutableOntologyImpl extends OWLAxiomIndexImpl implements OWLOn
     public boolean containsReference(OWLEntity entity, boolean includeImportsClosure) {
         return containsReference(entity, Imports.fromBoolean(includeImportsClosure));
     }
+
 }

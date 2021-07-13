@@ -26,7 +26,9 @@ import javax.annotation.Nonnull;
  *         Informatics Group
  * @since 2.0.0
  */
-public interface OWLAxiom extends OWLObject, HasAnnotations {
+public interface OWLAxiom extends OWLObject, HasAnnotations, HasPeriod {
+
+
 
     /**
      * @param visitor

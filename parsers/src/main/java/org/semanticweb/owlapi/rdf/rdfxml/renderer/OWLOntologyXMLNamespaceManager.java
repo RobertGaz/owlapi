@@ -89,6 +89,9 @@ public class OWLOntologyXMLNamespaceManager extends XMLWriterNamespaceManager {
             assert ent != null;
             processEntity(ent);
         }
+
+        namespaceUtil.setPrefix(Namespaces.TIME.toString(), Namespaces.TIME.getPrefixName());
+
         Map<String, String> ns2prefixMap = namespaceUtil
             .getNamespace2PrefixMap();
         for (String ns : ns2prefixMap.keySet()) {

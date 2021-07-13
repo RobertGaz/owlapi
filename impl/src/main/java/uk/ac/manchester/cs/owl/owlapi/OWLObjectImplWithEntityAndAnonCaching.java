@@ -35,10 +35,12 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
  *         Informatics Group
  * @since 2.0.0
  */
-public abstract class OWLObjectImplWithEntityAndAnonCaching implements OWLObject, Serializable {
+public abstract class OWLObjectImplWithEntityAndAnonCaching extends HasPeriodImpl implements OWLObject, Serializable {
 
     private static final long serialVersionUID = 40000L;
-    /** a convenience reference for an empty annotation set, saves on typing. */
+    /**
+     * a convenience reference for an empty annotation set, saves on typing.
+     */
     @Nonnull
     protected static final Set<OWLAnnotation> NO_ANNOTATIONS = CollectionFactory.emptySet();
     static final OWLObjectTypeIndexProvider OWLOBJECT_TYPEINDEX_PROVIDER = new OWLObjectTypeIndexProvider();
@@ -192,7 +194,7 @@ public abstract class OWLObjectImplWithEntityAndAnonCaching implements OWLObject
         }
         if (this instanceof OWLAxiom) {
             diff = compareLists(new ArrayList<>(((OWLAxiom) this).getAnnotations()), new ArrayList<>(((OWLAxiom) o)
-                .getAnnotations()));
+                    .getAnnotations()));
         }
         return diff;
     }
@@ -277,4 +279,5 @@ public abstract class OWLObjectImplWithEntityAndAnonCaching implements OWLObject
         }
         return list1.size() - list2.size();
     }
+
 }

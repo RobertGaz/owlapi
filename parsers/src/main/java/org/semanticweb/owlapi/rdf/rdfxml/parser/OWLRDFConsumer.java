@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.google.common.collect.*;
 import org.semanticweb.owlapi.formats.RDFDocumentFormat;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
@@ -40,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ArrayListMultimap;
 
 /**
  * A parser/interpreter for an RDF graph which represents an OWL ontology. The
@@ -63,8 +63,14 @@ import com.google.common.collect.ArrayListMultimap;
  */
 public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAnonymousIndividualByIdProvider {
 
+
+    private Map<IRI, Map<IRI, Multimap<IRI, TimePeriod>>> temporalTriples = CollectionFactory.createMap();
+    private Map<IRI, Map<IRI, Multimap<OWLLiteral, TimePeriod>>> temporalLiteralTriples = CollectionFactory.createMap();
+
+
     /** The Constant DAML_OIL. */
     private static final String DAML_OIL = "http://www.daml.org/2001/03/daml+oil#";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(OWLRDFConsumer.class);
     @Nonnull
     final TripleLogger tripleLogger;
@@ -168,6 +174,8 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
     private final ArrayListMultimap<IRI, Class<?>> guessedDeclarations = ArrayListMultimap.create();
     RemappingIndividualProvider anonProvider;
 
+    private TimePeriod currentAxiomPeriod;
+
     /**
      * Instantiates a new oWLRDF consumer.
      * 
@@ -248,6 +256,7 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
             addOntology(this.ontology.getOntologyID().getOntologyIRI().get());
         }
         tripleLogger = new TripleLogger();
+
     }
 
     @Override
@@ -567,6 +576,7 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
      *        the axiom
      */
     protected void addAxiom(OWLAxiom axiom) {
+
         if (expectedAxioms > 0) {
             parsedAxioms++;
             int percentParsed = (int) (parsedAxioms * 100.0 / expectedAxioms);
@@ -574,10 +584,15 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
                 lastPercentParsed = percentParsed;
             }
         }
+
         if (axiom.isAnnotationAxiom()) {
             if (configuration.isLoadAnnotationAxioms()) {
                 parsedAnnotationAxioms.add((OWLAnnotationAxiom) axiom);
             }
+        } else if (currentAxiomPeriod != null) {
+            axiom.addPeriod(currentAxiomPeriod);
+            currentAxiomPeriod = null;
+            owlOntologyManager.addAxiom(ontology, axiom);
         } else {
             owlOntologyManager.addAxiom(ontology, axiom);
         }
@@ -1482,7 +1497,8 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
 
     @Override
     public void statementWithLiteralValue(@Nonnull String subject, @Nonnull String predicate, @Nonnull String object,
-        @Nullable String language, @Nullable String datatype) {
+        @Nullable String language, @Nullable String datatype, TimePeriod period) {
+        currentAxiomPeriod = period;
         tripleLogger.logTriple(subject, predicate, object, language, datatype);
         IRI subjectIRI = getIRI(remapOnlyIfRemapped(subject));
         IRI predicateIRI = getIRI(predicate);
@@ -1492,26 +1508,31 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
 
     @Override
     public void statementWithLiteralValue(@Nonnull IRI subject, @Nonnull IRI predicate, @Nonnull String object,
-        String language, IRI datatype) {
+        String language, IRI datatype, TimePeriod period) {
+        currentAxiomPeriod = period;
         tripleLogger.logTriple(subject, predicate, object, language, datatype);
         handlerAccessor.handleStreaming(subject, getSynonym(predicate), object, datatype, language);
     }
 
     @Override
-    public void statementWithResourceValue(@Nonnull String subject, @Nonnull String predicate, @Nonnull String object) {
+    public void statementWithResourceValue(@Nonnull String subject, @Nonnull String predicate, @Nonnull String object, TimePeriod period) {
+        currentAxiomPeriod = period;
         tripleLogger.logTriple(subject, predicate, object);
         IRI subjectIRI = getIRI(subject);
         IRI predicateIRI = getIRI(predicate);
         predicateIRI = getSynonym(predicateIRI);
         IRI objectIRI = getSynonym(getIRI(object));
+
         handlerAccessor.handleStreaming(subjectIRI, predicateIRI, objectIRI);
     }
 
     @Override
-    public void statementWithResourceValue(@Nonnull IRI subject, @Nonnull IRI predicate, @Nonnull IRI object) {
+    public void statementWithResourceValue(@Nonnull IRI subject, @Nonnull IRI predicate, @Nonnull IRI object, TimePeriod period) {
+        currentAxiomPeriod = period;
         tripleLogger.logTriple(subject, predicate, object);
         handlerAccessor.handleStreaming(subject, getSynonym(predicate), getSynonym(object));
     }
+
 
     /**
      * A convenience method to obtain an {@code OWLLiteral}.
@@ -2308,6 +2329,7 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
      *        the iterator
      */
     protected void iterateResourceTriples(ResourceTripleIterator iterator) {
+
         for (IRI subject : resTriplesBySubject.keySet()) {
             Map<IRI, Collection<IRI>> map = resTriplesBySubject.get(subject);
             if (map == null) {
@@ -2322,7 +2344,33 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
                     assert subject != null;
                     assert predicate != null;
                     assert object != null;
+
                     iterator.handleResourceTriple(subject, predicate, object);
+                }
+            }
+        }
+
+        for (IRI subject : temporalTriples.keySet()) {
+            Map<IRI, Multimap<IRI, TimePeriod>> pot = temporalTriples.get(subject);
+            if (pot == null) {
+                continue;
+            }
+            for (IRI predicate : pot.keySet()) {
+                Multimap<IRI, TimePeriod> ot = pot.get(predicate);
+                if (ot == null) {
+                    continue;
+                }
+                for (IRI object : ot.keySet()) {
+                    for (TimePeriod period : ot.get(object)) {
+                        currentAxiomPeriod = period;
+
+                        assert subject != null;
+                        assert predicate != null;
+                        assert object != null;
+
+                        iterator.handleResourceTriple(subject, predicate, object);
+                        currentAxiomPeriod = null;
+                    }
                 }
             }
         }
@@ -2347,6 +2395,31 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
                     assert predicate != null;
                     assert object != null;
                     iterator.handleLiteralTriple(subject, predicate, object);
+                }
+            }
+        }
+
+        for (IRI subject : temporalLiteralTriples.keySet()) {
+            Map<IRI, Multimap<OWLLiteral, TimePeriod>> pot = temporalLiteralTriples.get(subject);
+            if (pot == null) {
+                continue;
+            }
+            for (IRI predicate : pot.keySet()) {
+                Multimap<OWLLiteral, TimePeriod> ot = pot.get(predicate);
+                if (ot == null) {
+                    continue;
+                }
+                for (OWLLiteral object : ot.keySet()) {
+                    for (TimePeriod period : ot.get(object)) {
+                        currentAxiomPeriod = period;
+
+                        assert subject != null;
+                        assert predicate != null;
+                        assert object != null;
+
+                        iterator.handleLiteralTriple(subject, predicate, object);
+                        currentAxiomPeriod = null;
+                    }
                 }
             }
         }
@@ -2398,10 +2471,27 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
         return iri == null ? i : iri.toString();
     }
 
+
     protected void addTriple(IRI subject, IRI predicate, IRI object) {
         Map<IRI, IRI> subjObjMap = singleValuedResTriplesByPredicate.get(predicate);
         if (subjObjMap != null) {
             subjObjMap.put(subject, object);
+        } else if (currentAxiomPeriod != null) {
+            Map<IRI, Multimap<IRI, TimePeriod>> pot = temporalTriples.get(subject);
+            if (pot == null) {
+                pot = CollectionFactory.createMap();
+                temporalTriples.put(subject, pot);
+            }
+
+            Multimap<IRI, TimePeriod> ot = pot.get(predicate);
+            if (ot == null) {
+                ot = LinkedHashMultimap.create();
+                pot.put(predicate, ot);
+            }
+
+
+            ot.put(object, currentAxiomPeriod);
+            currentAxiomPeriod = null;
         } else {
             Map<IRI, Collection<IRI>> map = resTriplesBySubject.get(subject);
             if (map == null) {
@@ -2421,6 +2511,21 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
         Map<IRI, OWLLiteral> subjObjMap = singleValuedLitTriplesByPredicate.get(predicate);
         if (subjObjMap != null) {
             subjObjMap.put(subject, con);
+        } else if (currentAxiomPeriod != null) {
+            Map<IRI, Multimap<OWLLiteral, TimePeriod>> pot = temporalLiteralTriples.get(subject);
+            if (pot == null) {
+                pot = CollectionFactory.createMap();
+                temporalLiteralTriples.put(subject, pot);
+            }
+
+            Multimap<OWLLiteral, TimePeriod> ot = pot.get(predicate);
+            if (ot == null) {
+                ot = LinkedHashMultimap.create();
+                pot.put(predicate, ot);
+            }
+
+            ot.put(con, currentAxiomPeriod);
+            currentAxiomPeriod = null;
         } else {
             Map<IRI, Collection<OWLLiteral>> map = litTriplesBySubject.get(subject);
             if (map == null) {
@@ -2435,4 +2540,7 @@ public class OWLRDFConsumer implements RDFConsumer, AnonymousNodeChecker, OWLAno
             objects.add(con);
         }
     }
+
+
 }
+

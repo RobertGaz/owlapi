@@ -31,7 +31,7 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
  *         Informatics Group
  * @since 2.0.0
  */
-public abstract class OWLObjectImplWithoutEntityAndAnonCaching implements OWLObject,
+public abstract class OWLObjectImplWithoutEntityAndAnonCaching extends HasPeriodImpl implements OWLObject,
     HasIncrementalSignatureGenerationSupport, Serializable {
 
     private static final long serialVersionUID = 40000L;
@@ -304,4 +304,6 @@ public abstract class OWLObjectImplWithoutEntityAndAnonCaching implements OWLObj
         }
         return list1.size() - list2.size();
     }
+
+
 }

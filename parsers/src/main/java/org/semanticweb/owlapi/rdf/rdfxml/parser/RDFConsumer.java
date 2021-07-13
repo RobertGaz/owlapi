@@ -17,6 +17,10 @@ import javax.annotation.Nullable;
 
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
+import org.semanticweb.owlapi.model.TimePeriod;
+
+import java.sql.Time;
+import java.time.Period;
 
 /** Receives notifications about triples generated during the parsing process. */
 public interface RDFConsumer {
@@ -52,7 +56,7 @@ public interface RDFConsumer {
      *         OWLRuntimeException
      */
     void statementWithResourceValue(@Nonnull String subject,
-            @Nonnull String predicate, @Nonnull String object);
+            @Nonnull String predicate, @Nonnull String object, TimePeriod period);
 
     /**
      * Called when a statement with resource value is added to the model.
@@ -67,7 +71,7 @@ public interface RDFConsumer {
      *         OWLRuntimeException
      */
     void statementWithResourceValue(@Nonnull IRI subject,
-            @Nonnull IRI predicate, @Nonnull IRI object);
+            @Nonnull IRI predicate, @Nonnull IRI object, TimePeriod period);
 
     /**
      * Called when a statement with literal value is added to the model.
@@ -87,7 +91,7 @@ public interface RDFConsumer {
      */
     void statementWithLiteralValue(@Nonnull String subject,
             @Nonnull String predicate, @Nonnull String object,
-            @Nullable String language, @Nullable String datatype);
+            @Nullable String language, @Nullable String datatype, TimePeriod period);
 
     /**
      * Called when a statement with literal value is added to the model.
@@ -106,8 +110,7 @@ public interface RDFConsumer {
      *         OWLRuntimeException
      */
     void statementWithLiteralValue(@Nonnull IRI subject,
-            @Nonnull IRI predicate, @Nonnull String object, String language,
-            IRI datatype);
+            @Nonnull IRI predicate, @Nonnull String object, String language, IRI datatype, TimePeriod period);
 
     /**
      * Receives the logical URI of the model.
@@ -167,4 +170,5 @@ public interface RDFConsumer {
      *        replacement for short version
      */
     void addPrefix(String abbreviation, String value);
+
 }

@@ -21,12 +21,17 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.semanticweb.owlapi.model.NodeID;
+import org.semanticweb.owlapi.model.TimePeriod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 abstract class AbstractState {
+    protected TimePeriod period;
+    public void setPeriod(TimePeriod period) {
+        this.period = period;
+    }
 
     //@formatter:off
     @Nonnull static final String DATATYPE_RESOURCE           = "rdf:datatype specified on a node with resource value.";
@@ -100,16 +105,18 @@ abstract class AbstractState {
                             || ATTR_ABOUT_EACH.equals(localName)
                             || ATTR_ABOUT_EACH_PREFIX.equals(localName) || ATTR_BAG_ID
                                 .equals(localName)))) {
+                if (ATTR_START_TIMESTAMP.equals(localName) || ATTR_END_TIMESTAMP.equals(localName)) {
+                    continue;
+                }
                 String reificationID = reificationManager.getReificationID(
                         null, parser);
                 parser.statementWithLiteralValue(subjectIRI, nsIRI + localName,
-                        value, null, reificationID);
+                        value, null, reificationID, null);
             } else if (RDFNS.equals(nsIRI) && ELT_TYPE.equals(localName)) {
                 String resolvedValue = parser.resolveIRI(value);
-                String reificationID = reificationManager.getReificationID(
-                        null, parser);
+                String reificationID = reificationManager.getReificationID(null, parser);
                 parser.statementWithResourceValue(subjectIRI,
-                        nsIRI + localName, resolvedValue, reificationID);
+                        nsIRI + localName, resolvedValue, reificationID, null);
             }
         }
     }
@@ -251,7 +258,7 @@ class EmptyPropertyElement extends AbstractState implements State {
             objectIRI = NodeID.nextAnonymousIRI();
         }
         parser.statementWithResourceValue(nodeElement.subjectIRI(),
-                propertyIRI(), objectIRI, reificationID);
+                propertyIRI(), objectIRI, reificationID, period);
         propertyAttributes(objectIRI, atts, getReificationManager(atts));
     }
 
@@ -330,7 +337,7 @@ class NodeElement extends AbstractState implements State {
         if (!isRDFNS || !ELT_DESCRIPTION.equals(localName)) {
             parser.statementWithResourceValue(subjectIRI(), RDF_TYPE,
                     namespaceIRI + localName,
-                    reificationManager.getReificationID(null, parser));
+                    reificationManager.getReificationID(null, parser), period);
         }
         // Checks if attribute list contains some of the unsupported attributes.
         parser.verify(atts.getIndex(RDFNS, ATTR_ABOUT_EACH) != -1,
@@ -450,10 +457,10 @@ class ParseTypeCollectionElement extends AbstractState implements State {
             String newListCellIRI = listCell(collectionNode.subjectIRI());
             if (lastCellIRI == null) {
                 parser.statementWithResourceValue(nodeElement.subjectIRI(),
-                        propertyIRI(), newListCellIRI, reificationID);
+                        propertyIRI(), newListCellIRI, reificationID, period);
             } else {
                 parser.statementWithResourceValue(lastCell(), RDF_REST,
-                        newListCellIRI, null);
+                        newListCellIRI, null, period);
             }
             lastCellIRI = newListCellIRI;
         }
@@ -463,8 +470,8 @@ class ParseTypeCollectionElement extends AbstractState implements State {
     String listCell(@Nonnull String valueIRI) {
         String listCellIRI = NodeID.nextAnonymousIRI();
         parser.statementWithResourceValue(listCellIRI, RDF_FIRST, valueIRI,
-                null);
-        parser.statementWithResourceValue(listCellIRI, RDF_TYPE, RDF_LIST, null);
+                null, period);
+        parser.statementWithResourceValue(listCellIRI, RDF_TYPE, RDF_LIST, null, period);
         return listCellIRI;
     }
 
@@ -472,10 +479,10 @@ class ParseTypeCollectionElement extends AbstractState implements State {
     public void endElement(String namespaceIRI, String localName, String qName) {
         if (lastCellIRI == null) {
             parser.statementWithResourceValue(nodeElement.subjectIRI(),
-                    propertyIRI(), RDF_NIL, reificationID);
+                    propertyIRI(), RDF_NIL, reificationID, period);
         } else {
             parser.statementWithResourceValue(lastCell(), RDF_REST, RDF_NIL,
-                    null);
+                    null, period);
         }
         parser.popState();
     }
@@ -534,11 +541,11 @@ class ResourceOrLiteralElement extends AbstractState implements State {
     public void endElement(String namespaceIRI, String localName, String qName) {
         if (innerNode != null) {
             parser.statementWithResourceValue(nodeElement.subjectIRI(),
-                    propertyIRI(), innerNode.subjectIRI(), reificationID);
+                    propertyIRI(), innerNode.subjectIRI(), reificationID, period);
         } else {
             parser.statementWithLiteralValue(nodeElement.subjectIRI(),
                     propertyIRI(), verifyNotNull(text.toString()), datatype,
-                    reificationID);
+                    reificationID, period);
         }
         parser.popState();
     }
@@ -601,7 +608,7 @@ class ParseTypeLiteralElement extends AbstractState implements State {
         if (depth == 1) {
             parser.statementWithLiteralValue(nodeElement.subjectIRI(),
                     propertyIRI(), verifyNotNull(m_content.toString()),
-                    RDF_XMLLITERAL, reificationID);
+                    RDF_XMLLITERAL, reificationID, period);
             parser.popState();
         } else {
             m_content.append("</");
@@ -639,7 +646,7 @@ class ParseTypeResourceElement extends AbstractState implements State {
         anonymousNodeElement.startDummyElement(atts);
         parser.statementWithResourceValue(nodeElement.subjectIRI(),
                 verifyNotNull(mpIRI), anonymousNodeElement.subjectIRI(),
-                reificationID);
+                reificationID, period);
         parser.pushState(new PropertyElementList(anonymousNodeElement, parser));
     }
 
@@ -663,8 +670,7 @@ class PropertyElementList extends AbstractState implements State {
     @Nonnull
     protected final NodeElement node;
 
-    PropertyElementList(@Nonnull NodeElement nodeElement,
-            @Nonnull RDFParser parser) {
+    PropertyElementList(@Nonnull NodeElement nodeElement, @Nonnull RDFParser parser) {
         super(parser);
         node = nodeElement;
     }
@@ -689,6 +695,16 @@ class PropertyElementList extends AbstractState implements State {
                 parser.pushState(new ResourceOrLiteralElement(node, parser));
             }
         }
+
+        String start = atts.getValue(TIME_PERIOD, ATTR_START_TIMESTAMP);
+        String end = atts.getValue(TIME_PERIOD, ATTR_END_TIMESTAMP);
+        period = null;
+        if (start != null || end != null) {
+            period = new TimePeriod(start, end);
+        }
+
+        parser.state.setPeriod(period);
+
         parser.state.startElement(namespaceIRI, localName, qName, atts);
     }
 
@@ -726,7 +742,7 @@ class ReifiedStatementBag extends ReificationManager {
 
     ReifiedStatementBag(@Nonnull String uri, @Nonnull RDFParser parser) {
         iri = uri;
-        parser.statementWithResourceValue(iri, RDF_TYPE, RDF_BAG, null);
+        parser.statementWithResourceValue(iri, RDF_TYPE, RDF_BAG, null, null);
     }
 
     @Nullable
@@ -740,7 +756,7 @@ class ReifiedStatementBag extends ReificationManager {
             resultIRI = reificationID;
         }
         parser.statementWithResourceValue(iri,
-                RDFNS + '_' + elements.getAndIncrement(), resultIRI, null);
+                RDFNS + '_' + elements.getAndIncrement(), resultIRI, null, null);
         return resultIRI;
     }
 }

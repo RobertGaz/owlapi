@@ -244,7 +244,12 @@ public class RDFXMLRenderer extends RDFRendererBase {
                 }
                 writer.writeTextContent(rdfLiteralNode.getLexicalValue());
             }
+            if (triple.getTimePeriod() != null) {
+                writer.writePeriodAttributes(triple.getTimePeriod());
+            }
             writer.writeEndElement();
+
+
         }
         writer.writeEndElement();
         pending.remove(node);
